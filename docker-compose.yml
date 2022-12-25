@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.9
+    command: 
+      # - "--api.insecure=true" 
+      - "--providers.docker"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Enable ACME (Let's Encrypt): automatic SSL.
+      - "--certificatesresolvers.letsencrypt.acme.email=tsk@thesimplekid.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      # Global redirect to https
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+    ports:
+      # The HTTP port
+      - "80:80"
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      # - "8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      # - "traefik.http.routers.dashboard.rule=Host(`dashboard.thesimplekid.com`)"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./letsencrypt/acme.json:/etc/traefik/acme/acme.json
+    restart: unless-stopped
+  relay:
+    image: scsibug/nostr-rs-relay
+    volumes:
+      - type: bind 
+        source: "./config.toml"
+        target: "/usr/src/app/config.toml"
+      - type: bind
+        source: "./data"
+        target: "/usr/src/app/db"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.relay.rule=Host(`nostr.thesimplekid.com`)"
+      - "traefik.http.routers.relay.entrypoints=websecure"
+      - "traefik.http.routers.relay.tls.certresolver=letsencrypt"
+    restart: unless-stopped
