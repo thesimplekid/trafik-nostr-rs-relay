@@ -11,6 +11,7 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       # Enable ACME (Let's Encrypt): automatic SSL.
+      # TODO: Change this email
       - "--certificatesresolvers.letsencrypt.acme.email=tsk@thesimplekid.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
@@ -45,6 +46,7 @@ services:
         target: "/usr/src/app/db"
     labels:
       - "traefik.enable=true"
+      # TODO: Change domain
       - "traefik.http.routers.relay.rule=Host(`nostr.thesimplekid.com`)"
       - "traefik.http.routers.relay.entrypoints=websecure"
       - "traefik.http.routers.relay.tls.certresolver=letsencrypt"
