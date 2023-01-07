@@ -25,10 +25,15 @@ services:
       - "443:443"
       # The Web UI (enabled by --api.insecure=true)
       # - "8080:8080"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.tls=true"
-      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+    # labels:
+      #- "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
+      #- "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
+      #- "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+      #- "traefik.http.middlewares.testheader.headers.addvaryheader=true"
+      # - "traefik.http.middlewares.cors.headers.customResponseHeaders.Access-Control-Allow-Origin=*"
+      # - "traefik.enable=true"
+      # - "traefik.http.routers.dashboard.tls=true"
+      # - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       # - "traefik.http.routers.dashboard.rule=Host(`dashboard.thesimplekid.com`)"
     volumes:
       # So that Traefik can listen to the Docker events
@@ -36,7 +41,7 @@ services:
       - ./letsencrypt/acme.json:/etc/traefik/acme/acme.json
     restart: unless-stopped
   relay:
-    image: scsibug/nostr-rs-relay
+    image: scsibug/nostr-rs-relay:0.7.16
     volumes:
       - type: bind 
         source: "./config.toml"
@@ -56,7 +61,13 @@ services:
     volumes:
       - ./static:/public
     labels:
+      #- "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
+      #- "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
+      #- "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+      #- "traefik.http.middlewares.testheader.headers.addvaryheader=true"
       - "traefik.enable=true"
       - "traefik.frontend.entryPoints=websecure"
       - "traefik.http.routers.nip05.rule=Host(`thesimplekid.com`)"
       - "traefik.http.routers.nip05.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.cors.headers.customResponseHeaders.Access-Control-Allow-Origin=*"
+      - "traefik.http.routers.nip05.middlewares=cors"
