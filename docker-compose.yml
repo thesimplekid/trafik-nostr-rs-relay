@@ -5,7 +5,7 @@ services:
     # The official v2 Traefik docker image
     image: traefik:v2.9
     command: 
-      # - "--api.insecure=true" 
+      #- "--api.insecure=true" 
       - "--providers.docker"
       - "--providers.docker.exposedByDefault=false"
       - "--entrypoints.web.address=:80"
@@ -25,16 +25,18 @@ services:
       - "443:443"
       # The Web UI (enabled by --api.insecure=true)
       # - "8080:8080"
-    # labels:
-      #- "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      #- "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
-      #- "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      #- "traefik.http.middlewares.testheader.headers.addvaryheader=true"
-      # - "traefik.http.middlewares.cors.headers.customResponseHeaders.Access-Control-Allow-Origin=*"
-      # - "traefik.enable=true"
-      # - "traefik.http.routers.dashboard.tls=true"
-      # - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      # - "traefik.http.routers.dashboard.rule=Host(`dashboard.thesimplekid.com`)"
+    labels:
+      - "traefik.enable=true"
+      #- "traefik.http.routers.dashboard.tls=true"
+      #- "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      #- "traefik.http.routers.dashboard.rule=Host(`dashboard.thesimplekid.com`)"
+      - "traefik.http.routers.ln-redirect.entryPoints=websecure"
+      - "traefik.http.routers.ln-redirect.rule=Host(`lnurl.thesimplekid.com`)"
+      - "traefik.http.routers.ln-redirect.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.ln-redirect.middlewares=ln-redirect"
+      - "traefik.http.middlewares.ln-redirect.redirectregex.permanent=false"      
+      - "traefik.http.middlewares.ln-redirect.redirectregex.regex=https://lnurl.thesimplekid.com/.well-known/lnurlp/thesimplekid"
+      - "traefik.http.middlewares.ln-redirect.redirectregex.replacement=https://getalby.com/lnurlp/thesimplekid"
     volumes:
       # So that Traefik can listen to the Docker events
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -61,13 +63,13 @@ services:
     volumes:
       - ./static:/public
     labels:
-      #- "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      #- "traefik.http.middlewares.testheader.headers.accesscontrolalloworigin=*"
-      #- "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      #- "traefik.http.middlewares.testheader.headers.addvaryheader=true"
       - "traefik.enable=true"
-      - "traefik.frontend.entryPoints=websecure"
+      - "traefik.http.routers.nip05.entryPoints=websecure"
       - "traefik.http.routers.nip05.rule=Host(`thesimplekid.com`)"
       - "traefik.http.routers.nip05.tls.certresolver=letsencrypt"
       - "traefik.http.middlewares.cors.headers.customResponseHeaders.Access-Control-Allow-Origin=*"
       - "traefik.http.routers.nip05.middlewares=cors"
+      - "traefik.http.routers.nip05.middlewares=home-redirect"
+      - "traefik.http.middlewares.home-redirect.redirectregex.permanent=false"      
+      - "traefik.http.middlewares.home-redirect.redirectregex.regex=https://thesimplekid.com"
+      - "traefik.http.middlewares.home-redirect.redirectregex.replacement=https://github.com/thesimplekid"
